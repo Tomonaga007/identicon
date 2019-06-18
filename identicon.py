@@ -6,17 +6,44 @@ import random
 import os
 
 
-def get_identicon(string, color=None, image_size=400, num_blocks=7, symetrical=True):
+def get_identicon(string, color=None, background=(255, 255, 255), image_size=400, num_blocks=5, symetrical=True):
+    """Get identicon based on  provided string
 
+    Parameters
+    ----------
+    string : string
+        String to be hashed
+    color : tuple
+        Tuple of 3 or 4 integers as a color representation
+        Default is None, which implies color based on hashed string
+    background : tuple
+        Tuple of 3 or 4 integers as a color representation
+        Default is white in RGB 
+    image_size : int
+        Output image size in pixels. Default is 400
+    num_blocks : int
+        Number of blocks per row used to create identicon. Default is 5
+    symertical : bool
+        Default is True, which implies symmetric along y axis
+
+    Returns
+    -------
+    image
+        Created identicon resized to image_size
+    """
     hash_string = get_hash_string(string)
     color = color if color else get_color(hash_string)
-    image = create_image(num_blocks, color,
-                         hash=hash_string, symmetrical=symetrical)
+    image = create_image(hash=hash_string, num_blocks=num_blocks,
+                         color=color, background=background,
+                         symmetrical=symetrical)
     image = image.resize((image_size, image_size))
     return image
 
 
 def save(identicon, filename):
+    '''Save identicon in as filename in current directory
+    Allowed filename extensions: png, jpg, jpeg
+    '''
     dir_path, file = os.path.split(filename)
     if not filename.lower().endswith(('.png', '.jpg', '.jpeg')):
         raise ValueError("Wrong file extension. Allowed are png, jpg, jpeg")
@@ -35,14 +62,36 @@ def get_hash_string(string):
 
 
 def get_color(hash):
-    '''Returns  '''
+    '''Returns tuple of 3 integers within range 0-255 '''
     return int(hash[0:2], 16), int(hash[2:4], 16), int(hash[4:6], 16)
 
 
-def create_image(num_blocks, color, hash, symmetrical=True):
-    '''Create identicon of size num_blocks*num_blocks based on hash'''
-    image = Image.new(mode="RGB", size=(num_blocks, num_blocks), color="white")
+def create_image(hash, num_blocks, color, background, symmetrical=True):
+    """Create RGB identicon image based on hash string
+
+    Parameters
+    ----------
+    hash : string
+        String of hexadecimal characters
+    num_blocks : int
+        Number of blocks per row used to create identicon.
+    color : tuple
+        Tuple of 3 or 4 integers as a color representation
+    background : tuple
+        Tuple of 3 or 4 integers as a color representation
+    symertical : bool
+        Default is True, which implies symmetric along y axis
+
+    Returns
+    -------
+    image
+        RGB identicon image
+    """
+    # create empty white initial image of size num_blocks*num_blocks
+    image = Image.new(mode="RGB", size=(
+        num_blocks, num_blocks), color=background)
     ind = 0
+    # width demends on weather image supposed to be symertical or not
     width = (num_blocks // 2 + num_blocks % 2) if symmetrical else num_blocks
     height = num_blocks
     for col in range(width):
@@ -59,6 +108,8 @@ def create_image(num_blocks, color, hash, symmetrical=True):
 
 
 def generate_random_string(lenght=10):
+    """Returns random string with specified length containing
+       letters and digits  """
     characters = string.ascii_letters + string.digits
     return "".join([random.choice(characters) for i in range(lenght)])
 
@@ -72,7 +123,9 @@ def main():
     parser.add_argument('--blocks', default=5, type=int,
                         help='number of identicon blocks in a row')
     parser.add_argument('--color', default=None, type=int, nargs="+",
-                        help='specify color as 1,3 or 4 integer values')
+                        help='specify color as 3 or 4 integer values')
+    parser.add_argument('--background', default=None, type=int, nargs="+",
+                        help='specify background color as 3 or 4 integer values')
     parser.add_argument('--not_symetrical', default=True, action='store_false',
                         help='use for not symetrical identicon')
     parser.add_argument('--save', default=None,
@@ -83,12 +136,12 @@ def main():
     size = args.size
     blocks = args.blocks
     symetrical = args.not_symetrical
-    color = args.color and (args.color[0] if len(
-        args.color) == 1 else tuple(args.color))
+    color = args.color and tuple(args.color)
+    background = tuple(args.background) if args.background else (255, 255, 255)
 
     try:
         image = get_identicon(string=input_string, image_size=size, color=color,
-                              num_blocks=blocks, symetrical=symetrical)
+                              background=background, num_blocks=blocks, symetrical=symetrical)
         if args.save:
             save(image, args.save)
         else:
