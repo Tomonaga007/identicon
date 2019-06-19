@@ -18,7 +18,7 @@ def get_identicon(string, color=None, background=(255, 255, 255), image_size=400
         Default is None, which implies color based on hashed string
     background : tuple
         Tuple of 3 or 4 integers as a color representation
-        Default is white in RGB 
+        Default is white
     image_size : int
         Output image size in pixels. Default is 400
     num_blocks : int
@@ -129,6 +129,8 @@ def main():
                         help='specify color as 3 or 4 integer values')
     parser.add_argument('--background', default=None, type=int, nargs="+",
                         help='specify background color as 3 or 4 integer values')
+    parser.add_argument('--border', default=0, type=int,
+                        help='specify border in pixels')
     parser.add_argument('--not_symetrical', default=True, action='store_false',
                         help='use for not symetrical identicon')
     parser.add_argument('--save', default=None,
@@ -141,10 +143,12 @@ def main():
     symetrical = args.not_symetrical
     color = args.color and tuple(args.color)
     background = tuple(args.background) if args.background else (255, 255, 255)
+    border = args.border
 
     try:
         image = get_identicon(string=input_string, image_size=size, color=color,
-                              background=background, num_blocks=blocks, symetrical=symetrical)
+                              background=background, num_blocks=blocks,
+                              border=border, symetrical=symetrical)
         if args.save:
             save(image, args.save)
         else:
