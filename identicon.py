@@ -1,12 +1,12 @@
 import hashlib
-from PIL import Image
+from PIL import Image, ImageOps
 import argparse
 import string
 import random
 import os
 
 
-def get_identicon(string, color=None, background=(255, 255, 255), image_size=400, num_blocks=5, symetrical=True):
+def get_identicon(string, color=None, background=(255, 255, 255), image_size=400, num_blocks=5, border=0, symetrical=True):
     """Get identicon based on  provided string
 
     Parameters
@@ -23,20 +23,23 @@ def get_identicon(string, color=None, background=(255, 255, 255), image_size=400
         Output image size in pixels. Default is 400
     num_blocks : int
         Number of blocks per row used to create identicon. Default is 5
+    border : int
+        Integer representing border around image in pixels
     symertical : bool
         Default is True, which implies symmetric along y axis
 
     Returns
     -------
     image
-        Created identicon resized to image_size
+        Created identicon resized to image_size with optional border
     """
     hash_string = get_hash_string(string)
     color = color if color else get_color(hash_string)
     image = create_image(hash=hash_string, num_blocks=num_blocks,
                          color=color, background=background,
                          symmetrical=symetrical)
-    image = image.resize((image_size, image_size))
+    image = image.resize((image_size - 2 * border, image_size - 2 * border))
+    image = ImageOps.expand(image, border=border, fill=background)
     return image
 
 
